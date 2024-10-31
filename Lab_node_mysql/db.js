@@ -9,7 +9,7 @@ await mysql.createConnection({
   connection.query(`CREATE DATABASE IF NOT EXISTS ${connectionConfig.database}`)
 })
 
-const seq = new Sequelize('shop', 'root', '', {
+const seq = new Sequelize(connectionConfig.database, connectionConfig.username, connectionConfig.password, {
   dialect: 'mysql',
   host: connectionConfig.host,
   port: connectionConfig.port,
