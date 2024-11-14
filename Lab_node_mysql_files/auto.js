@@ -1,11 +1,12 @@
 import _ from "lodash"
-import { Product, Category } from "./models.js"
+import fs from 'fs'
+import { Product, Category } from "./database/models.js"
 
 
 let product = await Product.findOne()
 let category = await Category.findOne()
 
-const baseURL = 'http://127.0.0.1:8000'
+const baseURL = 'http://127.0.0.1:8080'
 const categoriesAPI = `${baseURL}/api/categories`
 const productsAPI = `${baseURL}/api/products`
 
@@ -73,6 +74,14 @@ if (!product || !category) {
         for (let i = 0; i < products.length; i++) {
             const newProduct = await Product.create(products[i])
             newProduct.categoryId = res[i].id
+            let date = new Date()
+            const response = await fetch(products[i].image)
+            const buffer = await response.arrayBuffer()
+            let fileName = `${products[i].model}_${date.getFullYear()}_${date.getMonth()}_${date.getDay()}.jpg`
+            fs.writeFile(`${process.cwd()}\\uploads\\${fileName}`, new Uint8Array(buffer), () => {
+                console.log('Finishing downloading!')
+            })
+            newProduct.image = `/uploads/${fileName}`
             await newProduct.save()
         }
     })
@@ -149,6 +158,9 @@ await fetch(new Request(`${productsAPI}/${randomProductId}`, {
     console.log(`\nТовар с ID: ${randomProductId}\n${JSON.stringify(data, null, 4)}\n`)
 })
 
+const res = await fetch("https://c.dns-shop.ru/thumb/st1/fit/500/500/0625bcdb4284baef662d0173e9ff7eac/9b40d8cd4c2fc9e1a262bf7a1be9f7a8be7150a09fc3d9a09fde79ebbb1fe35a.jpg")
+const blob = await res.blob()
+
 randomCategoryId = _.sample(categories_ids)
 const newProduct= {
     "categoryId": randomCategoryId,
@@ -156,14 +168,17 @@ const newProduct= {
     "model": "ManufacturerA ModelB",
     "weight": 12.2,
     "price": 80.564,
-    "image": "https://c.dns-shop.ru/thumb/st1/fit/500/500/0625bcdb4284baef662d0173e9ff7eac/9b40d8cd4c2fc9e1a262bf7a1be9f7a8be7150a09fc3d9a09fde79ebbb1fe35a.jpg"
+    "image": blob
 }
+const form = new FormData()
+
+for (let key of Object.keys(newProduct)) {
+    form.append(key, newProduct[key])
+}
+
 await fetch(new Request(`${productsAPI}/`, {
     "method": "POST",
-    "body": JSON.stringify(newProduct),
-    "headers": {
-        "content-type": "application/json"
-    }
+    "body": form,
 })).then(res => res.json()).then(data => console.log(`Новый товар\n${JSON.stringify(data, null, 4)}`))
 
 randomProductId = _.sample(products_ids)
