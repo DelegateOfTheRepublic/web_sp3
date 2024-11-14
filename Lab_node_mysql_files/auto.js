@@ -13,6 +13,10 @@ const productsAPI = `${baseURL}/api/products`
 let products_ids = []
 let categories_ids = []
 
+if (!fs.existsSync('./uploads')) {
+    fs.mkdirSync('./uploads')
+}
+
 if (!product || !category) {
     let categories = [
         {
