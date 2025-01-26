@@ -6,7 +6,7 @@ import path from "path"
 import init from './database/init.js'
 
 const app = express()
-const PORT = 8080
+const PORT = 8000
 
 app.use(express.json())
 app.use('/uploads', express.static(path.join(`${process.cwd()}/uploads`)))

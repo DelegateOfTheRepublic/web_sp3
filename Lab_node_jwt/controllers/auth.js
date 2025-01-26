@@ -6,19 +6,20 @@ import { data } from '../secretInfo.js'
 import { User, Token } from '../database/models.js';
 
 class AuthController {
-    generateActivationToken(email) {
+    static generateActivationToken(email) {
         return jwt.sign({ email }, data.SECRET_KEY, { expiresIn: '24h' });
     };
 
-    sendActivationEmail(email) {
-        const token = generateActivationToken(email);
-        const activationLink = `http://localhost:8080/activate/${token}`;
+    static sendActivationEmail(email) {
+        const token = AuthController.generateActivationToken(email);
+        const activationLink = `http://localhost:8000/api/auth/activate/${token}`;
 
         const transporter = nodemailer.createTransport({
-            service: 'smtp.mail.ru',
+            host: 'smtp.mail.ru',
+            port: 465,
             auth: {
                 user: data.TEST_EMAIL,
-                pass: data.TEST_PASS,
+                pass: data.TEST_PASSWORD,
             },
         });
 
@@ -51,7 +52,7 @@ class AuthController {
             password: hashSync(pwd, genSaltSync())
         });
 
-        sendActivationEmail(email);
+        AuthController.sendActivationEmail(email);
 
         res.status(201).json({ message: 'Пользователь создан. Проверьте свою почту для активации!' });
     };
